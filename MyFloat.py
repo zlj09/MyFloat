@@ -5,7 +5,8 @@ num_width = 15;
 
 class MyBinary:
     width = 0;
-    bits = [] 
+    bits = []
+    
     def set(self, width, value):
         self.width = width
         self.bits = [0] * width
@@ -16,7 +17,47 @@ class MyBinary:
                 self.bits[i] = b    
             else:
                 self.bits[i] = 0
-    
+
+    def getBit(self, i):
+        if (i < self.width):
+            return self.bits[i]
+        else:
+            return 0
+                    
+    def __add__(self, other):
+        width = max(self.width, other.width)
+        res = MyBinary()
+        res.bits = [0] * width
+        c = 0
+        for i in range(0, width):
+            a = self.getBit(i)
+            b = other.getBit(i)
+            res.bits[i] = a ^ b ^ c
+            c = (a & c) | (b & c) | (a & b)
+        return res
+
+    def __sub__(self, other):
+        width = max(self.width, other.width)
+        res = MyBinary()
+        res.bits = [0] * width
+        c = 0
+        for i in range(0, width):
+            a = self.getBit(i)
+            b = other.getBit(i)
+            res.bits[i] = a ^ b ^ c
+            c = ~a & ~b & c | ~a & b & ~c | ~a & b & c | a & b & c
+        return res
+
+    def __mul__(self, other):
+        res = MyBinary()
+        res.width = self.width + other.width
+        res.bits = [0] * res.width
+
+        #for i in range(0, self.width)
+        return res
+        
+            
+        
 
 class MyFloat:
     isgn = 0;
@@ -40,11 +81,15 @@ class MyFloat:
     
         
 
-s = '-0.125'
-f = MyFloat()
-f.set(s)
-print(f.index.bits, f.num.bits)
+##s = '-0.125'
+##f = MyFloat()
+##f.set(s)
+##print(f.index.bits, f.num.bits)
+a = MyBinary()
+a.set(8, 117)
 b = MyBinary()
-b.set(4, 15)
+b.set(8, 24)
+c = a + b
+print(c.bits)
 
             
