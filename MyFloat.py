@@ -1,6 +1,6 @@
 import math
 
-index_width = 15;
+exp_width = 15;
 num_width = 15;
 
 class MyBinary:
@@ -27,6 +27,7 @@ class MyBinary:
     def __add__(self, other):
         width = max(self.width, other.width)
         res = MyBinary()
+        res.width = width
         res.bits = [0] * width
         c = 0
         for i in range(0, width):
@@ -48,20 +49,50 @@ class MyBinary:
             c = ~a & ~b & c | ~a & b & ~c | ~a & b & c | a & b & c
         return res
 
-    def __mul__(self, other):
+    def __lshift__(self, n):
         res = MyBinary()
+        res.width = self.width + n
+        res.bits = [0] * n + self.bits
+        return res
+    
+    def __mul__(self, other):
+        res = MyBinary()        
         res.width = self.width + other.width
         res.bits = [0] * res.width
 
-        #for i in range(0, self.width)
+        print(self, other)
+
+        for i in range(0, self.width):
+            if self.bits[i] == 1:
+                res = res + (other << i)
         return res
-        
-            
-        
+
+    def __lt__(self, other):
+        width = max(self.width, other.width)
+        i = width - 1;
+        while(i >= 0):
+            if (self.getBit(i) < other.getBit(i)):
+                return True
+            if (self.getBit(i) > other.getBit(i)):
+                return False
+            i = i - 1
+        return False
+
+    def __str__(self):
+        bin_str = 'width:' + str(self.width) + ' ' + 'bits: ' + str(self.bits)
+        return(bin_str)
+
+    def toDec(self):
+        bit_list = ['0'] * self.width
+        for i in range(0, self.width):
+            bit_list[i] = str(self.bits[i])
+        bit_list.reverse()
+        bit_str = ''.join(bit_list)
+        return(int(bit_str, 2))        
 
 class MyFloat:
-    isgn = 0;
-    index = MyBinary()
+    esgn = 0;
+    exp = MyBinary()
     nsgn = 0;
     num = MyBinary()
 
@@ -71,12 +102,34 @@ class MyFloat:
             self.nsgn = 1
             x = abs(x)
         b = int(math.log(x) / math.log(2)) + 1
-        a = x * (1 << (index_width - b))
+        a = x * (pow(2, (exp_width - b)))
         if b < 0:
-            self.isgn = 1
+            self.esgn = 1
             b = abs(b)
-        self.index.set(index_width, b)
+        self.exp.set(exp_width, b)
         self.num.set(num_width, a)
+
+    def __add__(self, other):
+        res = MyFloat()
+        
+
+    def __str__(self):
+        flt_str = "exp sign: " + str(self.esgn) + " exp:" + str(self.exp) + " num sign:" + str(self.nsgn) + " num: " + str(self.num)
+        return(flt_str)
+
+    def toFloat(self):
+        if self.esgn == 0:
+            exp = self.exp.toDec()
+        else:
+            exp = -self.exp.toDec()
+
+        if self.nsgn == 0:
+            num = self.num.toDec()
+        else:
+            num = -self.num.toDec()
+
+        return num / pow(2, (exp_width - exp))
+    
 
     
         
@@ -84,12 +137,41 @@ class MyFloat:
 ##s = '-0.125'
 ##f = MyFloat()
 ##f.set(s)
-##print(f.index.bits, f.num.bits)
-a = MyBinary()
-a.set(8, 117)
-b = MyBinary()
-b.set(8, 24)
-c = a + b
-print(c.bits)
+##print(f.exp.bits, f.num.bits)
+        
+##a = MyBinary()
+##a.set(9, 240)
+##b = MyBinary()
+##b.set(4, 15)
+##c = a + b
+##print(c.bits)
 
-            
+##a = MyBinary()
+##a.set(4, 13)
+##a = a << 2
+##print(a)
+
+##a = MyBinary()
+##a.set(4, 5)
+##b = MyBinary()
+##b.set(4, 7)
+##c = a * b
+##print(c)
+
+x = MyFloat()
+x.set(0.00078)
+y = MyFloat()
+y.set(0.01078)
+
+a = MyBinary()
+a.set(8, 1)
+b = MyBinary()
+b.set(5, 25)
+
+print(a < b)
+print(x.toFloat())
+
+##a = MyBinary()
+##a.set(16, 456)
+##print(a)
+##print(a.toDec())
