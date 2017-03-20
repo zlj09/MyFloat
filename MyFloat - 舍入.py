@@ -47,7 +47,6 @@ class MyBinary:
     def __sub__(self, other):
         width = max(self.width, other.width)
         res = MyBinary()
-        res.width = width
         res.bits = [0] * width
         c = 0
         for i in range(0, width):
@@ -75,6 +74,8 @@ class MyBinary:
         res.width = self.width + other.width
         res.bits = [0] * res.width
 
+        print(self, other)
+
         for i in range(0, self.width):
             if self.bits[i] == 1:
                 res = res + (other << i)
@@ -101,22 +102,19 @@ class MyBinary:
             bit_list[i] = str(self.bits[i])
         bit_list.reverse()
         bit_str = ''.join(bit_list)
-
-        if bit_str == '':
-            return 0
-        else:
-            return(int(bit_str, 2))
+        return(int(bit_str, 2))
 
     def trounding(self, trnd_width):
         if self.width <= trnd_width:
             return self
         else:
-            self.width = trnd_width
-
-            lsb = self.bits[-trnd_width] | self.bits[-trnd_width]
-            self.bits = self.bits[-trnd_width : len(self.bits)]
-            self.bits[0] = lsb
-            return self
+            res = MyBinary()
+            res.width = trnd_width
+            
+            res.bits = self.bits[-trnd_width : len(self.bits)]
+            res.bits[0] = self.bits[-trnd_width] | self.bits[-trnd_width]
+            print('1',res.toDec())
+            return res
 
 class SBinary:
     sgn = 0
@@ -154,31 +152,21 @@ class SBinary:
 
     def __add__(self, other):
         res = SBinary()
-        if (self.sgn == 0 and other.sgn == 0):
-            res.sgn == 0
+        res.sgn = self.sgn
+        if (other.sgn == 0):
             res.bnry = self.bnry + other.bnry
-        if (self.sgn == 0 and other.sgn == 1):
-            if (self.bnry < other.bnry):
-                res.sgn = 1
-                res.bnry = other.bnry - self.bnry
-            else:
-                res.sgn = 0
-                res.bnry = self.bnry - other.bnry
-        if (self.sgn == 1 and other.sgn == 0):
-            if (self.bnry < other.bnry):
-                res.sgn = 0
-                res.bnry = other.bnry - self.bnry
-            else:
-                res.sgn = 1
-                res.bnry = self.bnry - other.bnry
-        if (self.sgn == 1 and other.sgn == 1):
-            res.sgn == 1
-            res.bnry = self.bnry + other.bnry
+        else:
+            res.bnry = self.bnry - other.bnry
         return res
 
     def __sub__(self, other):
-        other.sgn = ~other.sgn
-        return self + other
+        res = SBinary()
+        res.sgn = self.sgn
+        if (other.sgn == 0):
+            res.bnry = self.bnry - other.bnry
+        else:
+            res.bnry = self.bnry + other.bnry
+        return res
 
     def __str__(self):
         sb_str = 'sign: ' + str(self.sgn) + '\t' + 'binary: ' + str(self.bnry)
@@ -190,8 +178,12 @@ class SBinary:
         else:
             return -self.bnry.toDec()
 
-    def trounding(self, trnd_width):        
-        self.bnry.trounding(trnd_width)
+    def trounding(self, trnd_width):
+        res = SBinary()
+        res.sgn = self.sgn
+        res.bnry = self.bnry.trounding(trnd_width)
+        print('2', res.toDec())
+        return res
 
 class MyFloat:
     exp = SBinary()
@@ -236,7 +228,9 @@ class MyFloat:
         extra_exp.set(0, num_width, num.bnry.width - num_width)
         exp = exp + extra_exp
 
+        #print('1', num.toDec())
         num.trounding(num_width)
+        print('3', num.toDec())
 
         res = MyFloat(exp, num)
         return res
@@ -281,7 +275,7 @@ class MyFloat:
 ##print(c)
 
 x = MyFloat()
-x.set(-30)
+x.set(15)
 ##print(x)
 ##print(x.toFloat())
 y = MyFloat(SBinary(1, MyBinary(9, [0, 3])), SBinary(1, MyBinary(2, [1, 2, 2, 3])))

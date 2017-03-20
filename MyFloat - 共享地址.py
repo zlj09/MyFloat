@@ -6,10 +6,6 @@ num_width = 15;
 class MyBinary:
     width = 0;
     bits = []
-
-    def __init__(self, width = 0, bits = []):
-        self.width = width
-        self.bits = bits
     
     def set(self, width, value):
         self.width = width
@@ -39,15 +35,11 @@ class MyBinary:
             b = other.getBit(i)
             res.bits[i] = a ^ b ^ c
             c = (a & c) | (b & c) | (a & b)
-        if c == 1:
-            res.width = res.width + 1
-            res.bits = res.bits + [1]
         return res
 
     def __sub__(self, other):
         width = max(self.width, other.width)
         res = MyBinary()
-        res.width = width
         res.bits = [0] * width
         c = 0
         for i in range(0, width):
@@ -62,18 +54,13 @@ class MyBinary:
         res.width = self.width + n
         res.bits = [0] * n + self.bits
         return res
-
-    def __rshift__(self, n):
-        res = MyBinary()
-        res.width = self.width - n
-        res.bits = self.bits[n : len(self.bits)]
-        return res
-        
     
     def __mul__(self, other):
         res = MyBinary()        
         res.width = self.width + other.width
         res.bits = [0] * res.width
+
+        print(self, other)
 
         for i in range(0, self.width):
             if self.bits[i] == 1:
@@ -101,84 +88,15 @@ class MyBinary:
             bit_list[i] = str(self.bits[i])
         bit_list.reverse()
         bit_str = ''.join(bit_list)
-
-        if bit_str == '':
-            return 0
-        else:
-            return(int(bit_str, 2))
-
-    def trounding(self, trnd_width):
-        if self.width <= trnd_width:
-            return self
-        else:
-            self.width = trnd_width
-
-            lsb = self.bits[-trnd_width] | self.bits[-trnd_width]
-            self.bits = self.bits[-trnd_width : len(self.bits)]
-            self.bits[0] = lsb
-            return self
+        return(int(bit_str, 2))
 
 class SBinary:
     sgn = 0
     bnry = MyBinary()
 
-    def __init__(self, sgn = 0, bnry = MyBinary()):
-        self.sgn = sgn
-        self.bnry = bnry
-
     def set(self, sgn, width, value):
         self.sgn = sgn
         self.bnry.set(width, value)
-
-    def __lt__(self, other):
-        if self.sgn == 0 and other.sgn == 0:
-            if self.bnry < other.bnry:
-                return True
-            else:
-                return False
-        if self.sgn == 1 and other.sgn == 0:
-            return True
-        if self.sgn == 0 and other.sgn == 1:
-            return False
-        if self.sgn == 1 and other.sgn == 1:
-            if self.bnry < other.bnry:
-                return False
-            else:
-                return True
-
-    def __lshift__(self, n):
-        res = SBinary()
-        res.sgn = self.sgn
-        res.bnry = self.bnry << n
-        return res
-
-    def __add__(self, other):
-        res = SBinary()
-        if (self.sgn == 0 and other.sgn == 0):
-            res.sgn == 0
-            res.bnry = self.bnry + other.bnry
-        if (self.sgn == 0 and other.sgn == 1):
-            if (self.bnry < other.bnry):
-                res.sgn = 1
-                res.bnry = other.bnry - self.bnry
-            else:
-                res.sgn = 0
-                res.bnry = self.bnry - other.bnry
-        if (self.sgn == 1 and other.sgn == 0):
-            if (self.bnry < other.bnry):
-                res.sgn = 0
-                res.bnry = other.bnry - self.bnry
-            else:
-                res.sgn = 1
-                res.bnry = self.bnry - other.bnry
-        if (self.sgn == 1 and other.sgn == 1):
-            res.sgn == 1
-            res.bnry = self.bnry + other.bnry
-        return res
-
-    def __sub__(self, other):
-        other.sgn = ~other.sgn
-        return self + other
 
     def __str__(self):
         sb_str = 'sign: ' + str(self.sgn) + '\t' + 'binary: ' + str(self.bnry)
@@ -190,16 +108,9 @@ class SBinary:
         else:
             return -self.bnry.toDec()
 
-    def trounding(self, trnd_width):        
-        self.bnry.trounding(trnd_width)
-
 class MyFloat:
     exp = SBinary()
     num = SBinary()
-
-    def __init__(self, exp = SBinary(1, MyBinary(5, [0])), num = SBinary(0, MyBinary(3, [1, 2, 3]))):
-        self.exp = exp
-        self.num = num
 
     def set(self, s):
         x = float(s)
@@ -216,31 +127,23 @@ class MyFloat:
             b = abs(b)
         else:
             esgn = 0
-          
+
+        print(b, a)
+
+        print(self.exp, self.num)
+        print('MyFloat exp.bnry: ', self.exp.bnry)
+        print('MyFloat num.bnry: ', self.num.bnry)            
         self.exp.set(esgn, exp_width, b)
+        print('MyFloat exp.bnry: ', self.exp.bnry)
+        print('MyFloat num.bnry: ', self.num.bnry)
         self.num.set(nsgn, num_width, a)
-        
-    def __add__(self, other):
-        if self.exp < other.exp:
-            flarge = other
-            fsmall = self
-        else:
-            flarge = self
-            fsmall = other
+        print('MyFloat exp.bnry: ', self.exp.bnry)
+        print('MyFloat num.bnry: ', self.num.bnry)
 
-        exp = fsmall.exp
-        num = flarge.num << (flarge.exp.toDec() - fsmall.exp.toDec())
-        num = num + fsmall.num
-
-        extra_exp = SBinary()
-        extra_exp.set(0, num_width, num.bnry.width - num_width)
-        exp = exp + extra_exp
-
-        num.trounding(num_width)
-
-        res = MyFloat(exp, num)
-        return res
-        
+##    def __add__(self, other):
+##        if (self.esgn == 1 and self.esgn == 1):
+##            if (self.exp > other.exp):
+##                print('hello')
         
 
     def __str__(self):
@@ -250,6 +153,8 @@ class MyFloat:
     def toFloat(self):
         exp = self.exp.toDec()
         num = self.num.toDec()
+        print(exp, num)
+
         return num / pow(2, (exp_width - exp))
     
 
@@ -281,21 +186,12 @@ class MyFloat:
 ##print(c)
 
 x = MyFloat()
-x.set(-30)
-##print(x)
-##print(x.toFloat())
-y = MyFloat(SBinary(1, MyBinary(9, [0, 3])), SBinary(1, MyBinary(2, [1, 2, 2, 3])))
-y.set(20.5)
+x.set(15)
+print(x)
+print(x.toFloat())
+##y = MyFloat()
+##y.set(0.01078)
 ##print(y)
-##print(y.toFloat())
-z = x + y
-print(z)
-print(z.toFloat())
-##print(x, '\n', y)
-
-##[x_a, y_a] = x + y
-##print(x, '\n', y)
-##print(x_a, '\n', y_a)
 
 ##a = MyBinary()
 ##a.set(8, 1)
