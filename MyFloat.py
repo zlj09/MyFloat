@@ -172,12 +172,15 @@ class SBinary:
                 res.sgn = 1
                 res.bnry = self.bnry - other.bnry
         if (self.sgn == 1 and other.sgn == 1):
-            res.sgn == 1
+            res.sgn = 1
             res.bnry = self.bnry + other.bnry
         return res
 
     def __sub__(self, other):
-        other.sgn = ~other.sgn
+        if other.sgn == 0:
+            other.sgn = 1
+        else:
+            other.sgn = 0
         return self + other
 
     def __str__(self):
@@ -241,7 +244,12 @@ class MyFloat:
         res = MyFloat(exp, num)
         return res
         
-        
+    def __sub__(self, other):
+        if other.num.sgn == 0:
+            other.num.sgn = 1
+        else:
+            other.num.sgn = 0
+        return self + other
 
     def __str__(self):
         flt_str = 'exp: ' + str(self.exp) + '\n' + 'num: ' + str(self.num)
@@ -280,17 +288,10 @@ class MyFloat:
 ##c = a * b
 ##print(c)
 
-x = MyFloat()
-x.set(-30)
 ##print(x)
 ##print(x.toFloat())
-y = MyFloat(SBinary(1, MyBinary(9, [0, 3])), SBinary(1, MyBinary(2, [1, 2, 2, 3])))
-y.set(20.5)
 ##print(y)
 ##print(y.toFloat())
-z = x + y
-print(z)
-print(z.toFloat())
 ##print(x, '\n', y)
 
 ##[x_a, y_a] = x + y
@@ -303,9 +304,16 @@ print(z.toFloat())
 ##b.set(5, 25)
 ##print(a < b)
 
-
-
 ##a = MyBinary()
 ##a.set(16, 456)
 ##print(a)
 ##print(a.toDec())
+
+
+x = MyFloat()
+x.set(300)
+y = MyFloat(SBinary(1, MyBinary(9, [0, 3])), SBinary(1, MyBinary(2, [1, 2, 2, 3])))
+y.set(-5)
+z = x - y
+print(z)
+print(z.toFloat())
