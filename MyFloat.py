@@ -72,13 +72,38 @@ class MyBinary:
     
     def __mul__(self, other):
         res = MyBinary()        
-        res.width = self.width + other.width
-        res.bits = [0] * res.width
+        res.width = 1
+        res.bits = [0]
+
+        other.simplify()
 
         for i in range(0, self.width):
             if self.bits[i] == 1:
                 res = res + (other << i)
         return res
+
+    def __truediv__(self, other):
+        res = MyBinary()
+        res.width = num_width
+        res.bits = [0] * num_width
+
+        if (self < other):
+            self = self << 1
+
+        i = num_width - 1
+        while(i >= 0):
+            if (self < other):
+                res.bits[i] = 0
+            else:
+                res.bits[i] = 1
+                self = self - other
+            i = i - 1
+            self = self << 1
+
+        res.simplify()
+
+        return res
+                
 
     def __lt__(self, other):
         width = max(self.width, other.width)
@@ -117,6 +142,16 @@ class MyBinary:
             self.bits = self.bits[-trnd_width : len(self.bits)]
             self.bits[0] = lsb
             return self
+
+    def simplify(self):
+        while(1):
+            if (self.bits[-1] == 0):
+                self.width = self.width - 1
+                del(self.bits[-1])
+            else:
+                break
+            if (self.width == 0):
+                break
 
 class SBinary:
     sgn = 0
@@ -183,6 +218,18 @@ class SBinary:
             other.sgn = 0
         return self + other
 
+    def __truemul__(self, other):
+        res = SBinary()
+        res.sgn = self.sgn ^ other.sgn
+        res.bnry = self.bnry * other.bnry
+        return res
+
+    def __truediv__(self, other):
+        res = SBinary()
+        res.sgn = self.sgn ^ other.sgn
+        res.bnry = self.bnry / other.bnry
+        return res
+
     def __str__(self):
         sb_str = 'sign: ' + str(self.sgn) + '\t' + 'binary: ' + str(self.bnry)
         return sb_str
@@ -236,7 +283,7 @@ class MyFloat:
         num = num + fsmall.num
 
         extra_exp = SBinary()
-        extra_exp.set(0, num_width, num.bnry.width - num_width)
+        extra_exp.set(0, exp_width, num.bnry.width - num_width)
         exp = exp + extra_exp
 
         num.trounding(num_width)
@@ -250,6 +297,33 @@ class MyFloat:
         else:
             other.num.sgn = 0
         return self + other
+
+    def __mul__(self, other):
+        exp = self.exp + other.exp
+        num = self.num * other.num
+
+        dropped_exp = SBinary()
+        dropped_exp.set(0, exp_width, 2 * num_width - num.bnry.width)
+        exp = exp - dropped_exp
+
+        num.trounding(num_width)
+        
+        res = MyFloat(exp, num)
+        return res
+
+    def __truediv__(self, other):
+        exp = self.exp - other.exp
+        num = self.num / other.num
+
+        if (self.num.bnry < other.num.bnry):
+            exp
+        else:
+            extra_exp = SBinary()
+            extra_exp.set(0, exp_width, 1)
+            exp = exp + extra_exp
+
+        res = MyFloat(exp, num)
+        return res
 
     def __str__(self):
         flt_str = 'exp: ' + str(self.exp) + '\n' + 'num: ' + str(self.num)
@@ -305,15 +379,29 @@ class MyFloat:
 ##print(a < b)
 
 ##a = MyBinary()
-##a.set(16, 456)
+##a.set(4, 15)
 ##print(a)
-##print(a.toDec())
+##b = MyBinary(3, [1, 0, 1])
+##b.set(4, 10)
+##print(b)
+##c = a / b
+##print(c)
+##print(c.toDec())
 
+##m = SBinary()
+##m.set(0, 16, 16384)
+##print(m)
+##n = SBinary(1, MyBinary(3, [1, 0, 1]))
+##n.set(1, 16, 24578)
+##print(n)
+##p = m * n
+##print(p)
+##print(p.toDec())
 
 x = MyFloat()
-x.set(300)
+x.set(-0.4)
 y = MyFloat(SBinary(1, MyBinary(9, [0, 3])), SBinary(1, MyBinary(2, [1, 2, 2, 3])))
-y.set(-5)
-z = x - y
+y.set(-20)
+z = x / y
 print(z)
 print(z.toFloat())
